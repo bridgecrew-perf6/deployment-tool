@@ -1,39 +1,33 @@
-_cm_ubuntu_focal_digitalocean_mkfile_dir := $(dir $(abspath $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
-_cm_ubuntu_focal_digitalocean_mkfile_dir := $(_cm_ubuntu_focal_digitalocean_mkfile_dir:/=)
+_mkfile_dir := $(dir $(abspath $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
+_mkfile_dir := $(_mkfile_dir:/=)
 
-_cm_ubuntu_focal_digitalocean_app_dir := ${_cm_ubuntu_focal_digitalocean_mkfile_dir}/../../../../..
-_cm_ubuntu_focal_digitalocean_cm_dir := ${_cm_ubuntu_focal_digitalocean_mkfile_dir}/../..
+_app_dir := $(abspath ${_mkfile_dir}/../../../..)
+_cm_dir := $(abspath ${_mkfile_dir}/../..)
 
-_cm_ubuntu_focal_digitalocean_inventory_file := /tmp/ansible/ubuntu-focal_digitalocean.inventory
+_config_tool := ${_app_dir}/lib/config.py
 
-include ${_cm_ubuntu_focal_digitalocean_app_dir}/lib/Makefile
+deployment_name :=
 
-# DEBUG: put in main Makefile later
-remote_ips := $$(${_cm_ubuntu_focal_digitalocean_app_dir}/deploy/platforms/digitalocean/lib/remote-ips.py)
+-validate-deployment-name:
+	[ -n "${deployment_name}" ] || ( echo 'ERROR: deployment_name must be provided' >&2; exit 1 )
 
--cm-ubuntu-focal-digitalocean-remote-ip-validation:
-	@:$(call check_defined, remote_ips)
+_tmp_dir := /tmp/ansible/ubuntu-focal/${deployment_name}
+_inventory_file := ${_tmp_dir}/digitalocean.inventory
+_config_file := ${_tmp_dir}/secrets-config.yml
 
--cm-ubuntu-focal-digitalocean-build-inventory: -cm-ubuntu-focal-digitalocean-remote-ip-validation
-	cd "${_cm_ubuntu_focal_digitalocean_mkfile_dir}" && \
-	${_cm_ubuntu_focal_digitalocean_app_dir}/lib/create-inventory-file.py \
-		--remote-ips "${remote_ips}" \
-		--inventory-file "${_cm_ubuntu_focal_digitalocean_inventory_file}"
+-create-inventory-file: -validate-deployment-name
+	mkdir -p $$(dirname "${_inventory_file}") && \
+	remote_ips="$$(${_config_tool} --key-chain '${deployment_name} cm' --ips)" envsubst \
+		< ${_cm_dir}/inventory.template \
+		> ${_inventory_file}
 
-_cm_ubuntu_focal_digitalocean_secrets_dir := ${_cm_ubuntu_focal_digitalocean_app_dir}/secrets
+debug:
+	make -- -create-inventory-file
 
-# do_reset_and_migrate=yes: run on one server first, then
-#   do_reset_and_migrate=no on the rest of the servers
-cm-ubuntu-focal-digitalocean-run: -cm-ubuntu-focal-digitalocean-build-inventory
-	cd "${_cm_ubuntu_focal_digitalocean_mkfile_dir}" && \
+run: -create-inventory-file
+	cd "${_mkfile_dir}" && \
 	ansible-playbook \
-		--inventory-file "${_cm_ubuntu_focal_digitalocean_inventory_file}" \
-		--extra-vars secrets_dir="${_cm_ubuntu_focal_digitalocean_secrets_dir}" \
-		--extra-vars do_reset_and_migrate='yes' \
-    --extra-vars "@${_cm_ubuntu_focal_digitalocean_mkfile_dir}/../../vars.yml" \
-    --extra-vars "cm_dir=${_cm_ubuntu_focal_digitalocean_cm_dir}" \
-    --extra-vars "@${_cm_ubuntu_focal_digitalocean_app_dir}/db/postgres.yml" \
-    --extra-vars '{"tls_container":${tls}}' \
-    --extra-vars "fetched_tls_files_dir=${fetched_tls_files_dir}" \
-    --extra-vars '@${domain_config_file}' \
-		${_cm_ubuntu_focal_digitalocean_mkfile_dir}/playbook.yml
+		--inventory-file "${_inventory_file}" \
+		${_mkfile_dir}/playbook.yml
+
+.PHONY: debug -validate-deployment-name -create-inventory-file run
