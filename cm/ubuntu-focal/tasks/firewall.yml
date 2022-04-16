@@ -1,10 +1,10 @@
 ---
-- name: '{{ title }}, firewall: set facts'
+- name: 'Firewall: set facts'
   set_fact:
-    group_title: '{{ title }}, firewall'
-    firewall_comment: '... created by "{{ title }}, firewall"'
+    title: 'Firewall'
+    firewall_comment: '... created by "Firewall"'
 
-- name: '{{ group_title }}: install'
+- name: '{{ title }}: install'
   become: yes
   apt:
     name: ufw
@@ -12,7 +12,7 @@
     # Why? See fail2ban. It might install crap like Python 2.
     install_recommends: no
 
-- name: '{{ group_title }}: allow SSH'
+- name: '{{ title }}: allow SSH'
   become: yes
   ufw:
     rule: 'allow'
@@ -26,7 +26,7 @@
   # Using command module
   # command: { argv: [ufw, allow, '{{ ansible_ssh_port }}'] }
 
-- name: '{{ group_title }}: allow HTTP'
+- name: '{{ title }}: allow HTTP'
   become: yes
   ufw:
     rule: 'allow'
@@ -34,7 +34,7 @@
     proto: tcp
     comment: '{{ firewall_comment }}'
 
-- name: '{{ group_title }}: allow HTTPS'
+- name: '{{ title }}: allow HTTPS'
   become: yes
   ufw:
     rule: 'allow'
@@ -42,7 +42,7 @@
     proto: tcp
     comment: '{{ firewall_comment }}'
 
-- name: '{{ group_title }}: deny SSH ipv6'
+- name: '{{ title }}: deny SSH ipv6'
   become: yes
   ufw:
     rule: 'deny'
@@ -54,14 +54,14 @@
     proto: 'tcp'
     comment: '{{ firewall_comment }}'
 
-- name: '{{ group_title }}: enable'
+- name: '{{ title }}: enable'
   become: yes
   ufw:
     state: enabled
   # Using command module
   # command: { argv: [ufw, --force, enable] }
 
-- name: '{{ group_title }}: default, deny incoming'
+- name: '{{ title }}: default, deny incoming'
   become: yes
   ufw:
     default: 'deny'
@@ -70,7 +70,7 @@
   # Using command module
   # command: { argv: [ufw, default, deny, incoming] }
 
-- name: '{{ group_title }}: default, allow outgoing'
+- name: '{{ title }}: default, allow outgoing'
   become: yes
   ufw:
     default: 'allow'
@@ -79,7 +79,7 @@
   # Using command module
   # command: { argv: [ufw, default, allow, outgoing] }
 
-- name: '{{ group_title }}: unset facts'
+- name: '{{ title }}: unset facts'
   set_fact:
-    group_title:
+    title:
     firewall_comment:

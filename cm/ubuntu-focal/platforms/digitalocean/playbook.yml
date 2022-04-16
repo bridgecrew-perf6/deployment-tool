@@ -14,9 +14,10 @@
         TODO_TEMPLATE_remote_user: 'TODO-USER'
         TODO_TEMPLATE_allow_ssh_ip: 'TODO-ALLOW-SSH-IP'
 
-    # - import_tasks: '{{ cm_dir }}/tasks/firewall.yml'
-    #   vars:
-    #     title: '{{ title }}'
+    - import_tasks: '{{ cm_dir }}/tasks/firewall.yml'
+      # vars:
+      #   TODO_TEMPLATE_ssh_port: 22
+      #   TODO_TEMPLATE_allow_ssh_ip: 'TODO-ALLOW-SSH-IP'
 
     # - name: '{{ title }}: dist updates and upgrades'
     #   become: yes
