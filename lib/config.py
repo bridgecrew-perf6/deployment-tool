@@ -11,7 +11,8 @@ import sys
 
 this_file = pathlib.Path((inspect.getfile(inspect.currentframe())))
 app_dir = this_file.joinpath('..', '..').resolve()
-default_config_file = app_dir.joinpath('secrets', 'config.yml')
+secrets_dir = app_dir.joinpath('secrets')
+default_config_file = secrets_dir.joinpath('config.yml')
 
 
 class Config(object):
@@ -25,12 +26,29 @@ class Config(object):
 
         config = functools.reduce(operator.getitem, keys, deployments_dict)
 
+        config = self.__resolve_paths(config)
+
         self.__output_file(output_file, config)
 
         self.data = config
 
     def print_ips(self):
         print("\n".join(self.data['ips']))
+
+    def __resolve_paths(self, config):
+        ptr_key = 'paths_to_resolve'
+        if ptr_key not in config:
+            return
+
+        ptr = config[ptr_key]
+
+        for path_key in ptr:
+            if path_key not in config:
+                next
+
+            config[path_key] = secrets_dir.joinpath(config[path_key])
+
+        return config
 
     def __output_file(self, output_file, config):
         if not output_file:
