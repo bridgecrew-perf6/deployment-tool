@@ -46,7 +46,7 @@ class Config(object):
             if path_key not in config:
                 next
 
-            config[path_key] = secrets_dir.joinpath(config[path_key])
+            config[path_key] = secrets_dir.joinpath(config[path_key]).as_posix()
 
         return config
 
