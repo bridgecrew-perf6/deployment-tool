@@ -19,23 +19,21 @@
       #   TODO_TEMPLATE_ssh_port: 22
       #   TODO_TEMPLATE_allow_ssh_ip: 'TODO-ALLOW-SSH-IP'
 
-    # - name: '{{ title }}: dist updates and upgrades'
-    #   become: yes
-    #   apt:
-    #     update_cache: yes
-    #     upgrade: dist
+    - name: '{{ title }}: dist updates and upgrades'
+      become: yes
+      apt:
+        update_cache: yes
+        upgrade: dist
 
-    # - name: '{{ title }}: install packages'
-    #   become: yes
-    #   apt:
-    #     pkg:
-    #       - tree
-    #       - make
-    #       # For becoming a non-root user
-    #       - acl
-    #       # For PostgreSQL database queries using Ansible
-    #       - python3-psycopg2
-    #     install_recommends: no
+    - name: '{{ title }}: install packages'
+      become: yes
+      apt:
+        pkg:
+          - tree
+          - make
+          # For becoming a non-root user
+          - acl
+        install_recommends: no
 
     # - import_tasks: '{{ cm_dir }}/tasks/users.yml'
     #   vars:
