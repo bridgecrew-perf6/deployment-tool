@@ -1,9 +1,9 @@
 ---
-- name: '{{ title }}, users: set facts'
+- name: 'Users: set facts'
   set_fact:
-    group_title: '{{ title }}, users'
+    title: 'Users'
 
-- name: '{{ group_title }}: create deploy user'
+- name: '{{ title }}: create deploy user'
   become: yes
   ansible.builtin.user:
     name: '{{ deploy_user }}'
@@ -11,7 +11,7 @@
     shell: /bin/bash
 
 # [WARNING]: Module remote_tmp /home/deploy/.ansible/tmp did not exist and was created with a mode of 0700...
-- name: '{{ group_title }}: create remote_tmp dir'
+- name: '{{ title }}: create remote_tmp dir'
   become: yes
   ansible.builtin.file:
     path: '/home/{{ deploy_user }}/.ansible/tmp'
@@ -21,6 +21,6 @@
     group: '{{ deploy_user }}'
     mode: 0700
 
-- name: '{{ group_title }}: unset facts'
+- name: '{{ title }}: unset facts'
   set_fact:
-    group_title:
+    title:
