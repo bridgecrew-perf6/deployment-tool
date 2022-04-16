@@ -6,6 +6,7 @@ import inspect
 import yaml
 import functools
 import operator
+import sys
 
 
 this_file = pathlib.Path((inspect.getfile(inspect.currentframe())))
@@ -27,6 +28,9 @@ class Config(object):
         self.__output_file(output_file, config)
 
         self.data = config
+
+    def print_ips(self):
+        print("\n".join(self.data['ips']))
 
     def __output_file(self, output_file, config):
         if not output_file:
@@ -54,7 +58,7 @@ if __name__ == '__main__':
     )
 
     parser.add_argument(
-        '-i', '--config-file',
+        '-c', '--config-file',
         dest='config_file',
         default=default_config_file
     )
@@ -64,9 +68,19 @@ if __name__ == '__main__':
         dest='output_file'
     )
 
+    parser.add_argument(
+        '-i', '--ips',
+        dest='ips',
+        action=argparse.BooleanOptionalAction
+    )
+
     args = parser.parse_args()
 
     config = Config(key_chain=args.key_chain, config_file=args.config_file, output_file=args.output_file)
+
+    if args.ips:
+        config.print_ips()
+        sys.exit()
 
     if not args.output_file:
         print(config.data)
