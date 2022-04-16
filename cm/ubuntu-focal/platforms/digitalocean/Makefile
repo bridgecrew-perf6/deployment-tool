@@ -35,6 +35,7 @@ run: -create-inventory-file -create-config-file
 		--inventory-file "${_inventory_file}" \
     --extra-vars "cm_dir=${_cm_dir}" \
     --extra-vars "@${_config_file}" \
+    --extra-vars "@${_cm_dir}/vars.yml" \
 		${_mkfile_dir}/playbook.yml
 
 # # do_reset_and_migrate=yes: run on one server first, then
