@@ -5,7 +5,6 @@ import pathlib
 import inspect
 import yaml
 import functools
-import operator
 import sys
 
 
@@ -16,21 +15,28 @@ default_config_file = secrets_dir.joinpath('config.yml')
 
 
 class Config(object):
-    def __init__(self, key_chain, config_file=default_config_file, output_file=None):
+    def __init__(
+        self,
+        deployment_name,
+        section,
+        config_file=default_config_file, output_file=None, key_chain=None
+    ):
         with open(config_file, 'r') as stream:
             data = yaml.safe_load(stream)
 
-        keys = [str.strip() for str in key_chain.split()]
+        config = data['deployments'][deployment_name][section]
 
-        deployments_dict = data['deployments']
+        self.__resolve_paths(config)
 
-        config = functools.reduce(operator.getitem, keys, deployments_dict)
-
-        config = self.__resolve_paths(config)
-
-        self.__output_file(output_file, config)
+        self.__inject_calculated(config)
 
         self.data = config
+        if output_file:
+            self.__output_file(output_file, config)
+            return
+
+        if key_chain:
+            self.value = self.__key_chain(config, key_chain)
 
     def print_ips(self):
         print("\n".join(self.data['ips']))
@@ -44,11 +50,21 @@ class Config(object):
 
         for path_key in ptr:
             if path_key not in config:
-                next
+                continue
 
             config[path_key] = secrets_dir.joinpath(config[path_key]).as_posix()
 
         return config
+
+    def __inject_calculated(self, config):
+        cfd_key = 'cert_files_dir'
+        cfap_key = 'cert_files_are_present'
+        if cfd_key in config:
+            if pathlib.Path(config[cfd_key]).is_dir():
+                config[cfap_key] = True
+                return
+
+        config[cfap_key] = False
 
     def __output_file(self, output_file, config):
         if not output_file:
@@ -64,15 +80,39 @@ class Config(object):
             case _:
                 raise RuntimeError(f"unsupported output file suffix '{suffix}'")
 
+    def __key_chain(self, config, key_chain):
+        keys = [str.strip() for str in key_chain.split()]
+        return functools.reduce(dict.get, keys, config)
+
+    def __getitem__(self, key):
+        return self.data[key]
+
+    def __iter__(self):
+        return iter(self.data)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Tool to interface with config file')
 
     parser.add_argument(
+        '-d', '--deployment-name',
+        dest='deployment_name',
+        required=True
+    )
+
+    section_choices = ['cm', 'infra']
+    parser.add_argument(
+        '-s', '--section',
+        dest='section',
+        choices=section_choices,
+        help=f'{section_choices}',
+        required=True
+    )
+
+    parser.add_argument(
         '-k', '--key-chain',
         dest='key_chain',
         help="'key1 key2 key3': the list of keys separated by a space to dig into the YAML data",
-        required=True
     )
 
     parser.add_argument(
@@ -94,11 +134,18 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    config = Config(key_chain=args.key_chain, config_file=args.config_file, output_file=args.output_file)
+    config = Config(
+        args.deployment_name,
+        args.section,
+        key_chain=args.key_chain, config_file=args.config_file, output_file=args.output_file
+    )
 
     if args.ips:
         config.print_ips()
         sys.exit()
 
-    if not args.output_file:
-        print(config.data)
+    if args.key_chain:
+        if config.value:
+            print(config.value)
+
+        sys.exit()

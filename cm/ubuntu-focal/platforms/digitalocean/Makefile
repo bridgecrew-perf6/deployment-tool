@@ -1,14 +1,15 @@
+deployment_name :=
+
 _mkfile_dir := $(dir $(abspath $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
 _mkfile_dir := $(_mkfile_dir:/=)
 
 _app_dir := $(abspath ${_mkfile_dir}/../../../..)
 _cm_dir := $(abspath ${_mkfile_dir}/../..)
 
-_config_tool := ${_app_dir}/lib/config.py
+_section := cm
 
-deployment_name :=
-
-_key_chain := ${deployment_name} cm
+_lib_dir = ${_app_dir}/lib
+_config_tool := ${_lib_dir}/config.py --deployment-name "${deployment_name}" --section "${_section}"
 
 -validate-deployment-name:
 	[ -n "${deployment_name}" ] || ( echo 'ERROR: deployment_name must be provided' >&2; exit 1 )
@@ -19,39 +20,28 @@ _config_file := ${_tmp_dir}/secrets-config.yml
 
 -create-inventory-file: -validate-deployment-name
 	mkdir -p $$(dirname "${_inventory_file}") && \
-	remote_ips="$$(${_config_tool} --key-chain "${_key_chain}" --ips)" envsubst \
+	remote_ips="$$(${_config_tool} --ips)" envsubst \
 		< ${_cm_dir}/inventory.template \
 		> ${_inventory_file}
 
 -create-config-file: -validate-deployment-name
-	${_config_tool} --key-chain "${_key_chain}" --output-file="${_config_file}"
+	${_config_tool} --output-file="${_config_file}"
 
-debug:
-	make -- -create-config-file
+_cert_files_dir := $$(${_config_tool} --key-chain cert_files_dir)
+-setup-certs:
+	if [ -n "${_cert_files_dir}" ]; then \
+		mkdir -p "$$(dirname "${_cert_files_dir}")"; \
+	fi
 
-run: -create-inventory-file -create-config-file
+run: -create-inventory-file -create-config-file -setup-certs
 	cd "${_mkfile_dir}" && \
 	ansible-playbook \
 		--inventory-file "${_inventory_file}" \
+		--extra-vars "app_name=${deployment_name}" \
     --extra-vars "cm_dir=${_cm_dir}" \
     --extra-vars "@${_config_file}" \
     --extra-vars "@${_cm_dir}/vars.yml" \
-		${_mkfile_dir}/playbook.yml
+		${_mkfile_dir}/playbook.yml && \
+		${_lib_dir}/extract-tls.py --deployment-name "${deployment_name}"
 
-# # do_reset_and_migrate=yes: run on one server first, then
-# #   do_reset_and_migrate=no on the rest of the servers
-# cm-ubuntu-focal-digitalocean-run: -cm-ubuntu-focal-digitalocean-build-inventory
-# 	cd "${_mkfile_dir}" && \
-# 	ansible-playbook \
-# 		--inventory-file "${_inventory_file}" \
-# 		--extra-vars secrets_dir="${_secrets_dir}" \
-# 		--extra-vars do_reset_and_migrate='yes' \
-#     --extra-vars "@${_mkfile_dir}/../../vars.yml" \
-#     --extra-vars "cm_dir=${_cm_dir}" \
-#     --extra-vars "@${_app_dir}/db/postgres.yml" \
-#     --extra-vars '{"tls_container":${tls}}' \
-#     --extra-vars "fetched_tls_files_dir=${fetched_tls_files_dir}" \
-#     --extra-vars '@${domain_config_file}' \
-# 		${_mkfile_dir}/playbook.yml
-
-.PHONY: debug -validate-deployment-name -create-inventory-file -create-config-file
+.PHONY: -validate-deployment-name -create-inventory-file -create-config-file -setup-certs run

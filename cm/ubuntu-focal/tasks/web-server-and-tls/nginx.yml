@@ -1,33 +1,35 @@
-- name: '{{ sub_subgroup_title }}: set facts'
+- name: '{{ subgroup_title }}, nginx: set facts'
   set_fact:
-    backend_port: 8000
-    server_config_dest: '/etc/nginx/sites-available/app'
-    template_file: "{{ './app.nginx.no-cert.j2' if no_cert_files else './app.nginx.with-cert.j2' }}"
+    nginx_title: '{{ subgroup_title }}, nginx'
+    backend_port: '{{ backend_port }}'
+    server_config_dest: '/etc/nginx/sites-available/{{ app_name }}'
+    template_file: "{{ './app.nginx.with-cert.j2' if cert_files_are_present else './app.nginx.no-cert.j2' }}"
 
-- name: '{{ sub_subgroup_title }}: install packages'
+- name: '{{ nginx_title }}: install packages'
   become: yes
   apt:
     pkg:
       - nginx
     install_recommends: no
 
-- name: '{{ sub_subgroup_title }}: create server config file'
+- name: '{{ nginx_title }}: create server config file'
   become: yes
   vars:
-    server_name: "{{ '# ... no domains' if no_domain else ['server_name', ' ', ' '.join(domains), ';'] | join('') }}"
+    server_name: "{{ '# ... no domains' if not cert_files_are_present else ['server_name', ' ', ' '.join(domains), ';'] | join('') }}"
   ansible.builtin.template:
     src: '{{ template_file }}'
     dest: '{{ server_config_dest }}'
 
-- name: '{{ sub_subgroup_title }}: create symlink to sites-enabled dir'
+- name: '{{ nginx_title }}: create symlink to sites-enabled dir'
   become: yes
   ansible.builtin.file:
     src: '{{ server_config_dest }}'
-    dest: '/etc/nginx/sites-enabled/default'
+    dest: '/etc/nginx/sites-enabled/{{ app_name }}'
     state: link
 
-- name: '{{ sub_subgroup_title }}: unset facts'
+- name: '{{ nginx_title }}: unset facts'
   set_fact:
+    nginx_title:
     backend_port:
     server_config_dest:
     template_file:
