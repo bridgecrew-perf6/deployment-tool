@@ -1,13 +1,32 @@
-# 2022 04 16
-# TASK [Let's Encrypt: run certbot] ********************************************************************************************************************************************************************
-# fatal: [137.184.244.177]: FAILED! => {"changed": true, "cmd": ["/usr/bin/certbot", "--nginx", "--domains", "grpc.cloudsandbox.dev", "--non-interactive", "--agree-tos", "--email", "software.engr.full.stack@gmail.com"], "delta": "0:00:09.425849", "end": "2022-04-16 08:19:16.876543", "msg": "non-zero return code", "rc": 1, "start": "2022-04-16 08:19:07.450694", "stderr": "Saving debug log to /var/log/letsencrypt/letsencrypt.log\nCould not automatically find a matching server block for grpc.cloudsandbox.dev. Set the `server_name` directive to use the Nginx installer.\nAsk for help or search for solutions at https://community.letsencrypt.org. See the logfile /var/log/letsencrypt/letsencrypt.log or re-run Certbot with -v for more details.", "stderr_lines": ["Saving debug log to /var/log/letsencrypt/letsencrypt.log", "Could not automatically find a matching server block for grpc.cloudsandbox.dev. Set the `server_name` directive to use the Nginx installer.", "Ask for help or search for solutions at https://community.letsencrypt.org. See the logfile /var/log/letsencrypt/letsencrypt.log or re-run Certbot with -v for more details."], "stdout": "Requesting a certificate for grpc.cloudsandbox.dev\n\nSuccessfully received certificate.\nCertificate is saved at: /etc/letsencrypt/live/grpc.cloudsandbox.dev/fullchain.pem\nKey is saved at:         /etc/letsencrypt/live/grpc.cloudsandbox.dev/privkey.pem\nThis certificate expires on 2022-07-15.\nThese files will be updated when the certificate renews.\nCertbot has set up a scheduled task to automatically renew this certificate in the background.\n\nDeploying certificate\nCould not install certificate\nNEXT STEPS:\n- The certificate was saved, but could not be installed (installer: nginx). After fixing the error shown below, try installing it again by running:\n  certbot install --cert-name grpc.cloudsandbox.dev", "stdout_lines": ["Requesting a certificate for grpc.cloudsandbox.dev", "", "Successfully received certificate.", "Certificate is saved at: /etc/letsencrypt/live/grpc.cloudsandbox.dev/fullchain.pem", "Key is saved at:         /etc/letsencrypt/live/grpc.cloudsandbox.dev/privkey.pem", "This certificate expires on 2022-07-15.", "These files will be updated when the certificate renews.", "Certbot has set up a scheduled task to automatically renew this certificate in the background.", "", "Deploying certificate", "Could not install certificate", "NEXT STEPS:", "- The certificate was saved, but could not be installed (installer: nginx). After fixing the error shown below, try installing it again by running:", "  certbot install --cert-name grpc.cloudsandbox.dev"]}
-
 - name: "Let's Encrypt: set facts"
   set_fact:
+    certs_backup_dir: '/root/certs/{{ main_domain }}'
     letsencrypt_title: "Let's Encrypt"
     certbot_bin_dest: '/usr/bin/certbot'
     email: '{{ email }}'
-    tar_file: '/root/letsencrypt.tar.xz'
+    tar_file: '/root/letsencrypt.{{ main_domain }}.tar.xz'
+    local_domain_cert_files_dir: '{{ cert_files_dir }}/{{ main_domain }}'
+
+- name: '{{ letsencrypt_title }}: check if cert files in target are present'
+  become: yes
+  ansible.builtin.stat:
+    path: '/etc/letsencrypt/live/{{ main_domain }}/cert.pem'
+  register: stat_result
+
+- name: '{{ letsencrypt_title }}: check if cert files in target are present'
+  set_fact:
+    cert_files_in_target_are_present: '{{ stat_result.stat.exists }}'
+
+- name: '...'
+  connection: local
+  delegate_to: localhost
+  ansible.builtin.stat:
+    path: '{{ local_domain_cert_files_dir }}'
+  register: stat_result
+
+- name: '{{ letsencrypt_title }}: check if cert files in local host are present'
+  set_fact:
+    cert_files_in_localhost_are_present: '{{ stat_result.stat.exists }}'
 
 - name: '{{ letsencrypt_title }}: install packages'
   become: yes
@@ -25,59 +44,86 @@
     dest: '{{ certbot_bin_dest }}'
     state: link
 
+- name: '{{ letsencrypt_title }}: copy archive cert files from localhost to target if present'
+  become: yes
+  when: not cert_files_in_target_are_present and cert_files_in_localhost_are_present
+  ansible.builtin.copy:
+    src: '{{ local_domain_cert_files_dir }}/archive/{{ main_domain }}'
+    dest: '/etc/letsencrypt/archive/'
+    local_follow: no
+
+- name: '{{ letsencrypt_title }}: copy live cert files from localhost to target if present'
+  become: yes
+  when: not cert_files_in_target_are_present and cert_files_in_localhost_are_present
+  ansible.builtin.copy:
+    src: '{{ local_domain_cert_files_dir }}/live/{{ main_domain }}'
+    dest: '/etc/letsencrypt/live/'
+    local_follow: no
+
 - name: '{{ letsencrypt_title }}: run certbot'
   become: yes
-  when: not cert_files_are_present
+  when: not cert_files_in_target_are_present and not cert_files_in_localhost_are_present
   ansible.builtin.command:
     argv:
       - '{{ certbot_bin_dest }}'
-
-      - --nginx
+      - certonly
+      - --webroot
+      - --webroot-path
+      - '{{ _html_path }}'
       - --domains
       - "{{ domains | join(',') }}"
-
       - --non-interactive
       - --agree-tos
       - --email
       - '{{ email }}'
 
-# # TODO: delete after debugging
-# - name: '{{ letsencrypt_title }}, DEBUG: CertBot run is successful'
-#   ansible.builtin.command: 'echo DEBUG: CERTBOT IS successful'
-#   register: certbot_result
+- name: '{{ letsencrypt_title }}: create certs backup dir'
+  become: yes
+  ansible.builtin.file:
+    dest: '{{ certs_backup_dir }}'
+    state: directory
+
+- name: '{{ letsencrypt_title }}: backup cert files'
+  become: yes
+  ansible.builtin.copy:
+    src: '/etc/letsencrypt/archive/{{ main_domain }}'
+    dest: '{{ certs_backup_dir }}/archive'
+    local_follow: no
+    remote_src: yes
+
+- name: '{{ letsencrypt_title }}: backup cert files'
+  become: yes
+  ansible.builtin.copy:
+    src: '/etc/letsencrypt/live/{{ main_domain }}'
+    dest: '{{ certs_backup_dir }}/live'
+    local_follow: no
+    remote_src: yes
 
 - name: '{{ letsencrypt_title }}: create archive for fetching (at this time, Ansible can only fetch a file from remote to local)'
-  when: not cert_files_are_present
   become: yes
   ansible.builtin.command:
     argv:
       - tar
       - cJvf
       - '{{ tar_file }}'
-      - /etc/letsencrypt
+      - '{{ main_domain }}'
+  args:
+    chdir: '{{ certs_backup_dir | dirname }}'
 
 - name: '{{ letsencrypt_title }}: copy TLS files from remote to local host'
-  when: not cert_files_are_present
   become: yes
   run_once: yes
   ansible.builtin.fetch:
     src: '{{ tar_file }}'
     # !!!!IMPORTANT: relative to the playbook calling this file!!!!
     dest: '{{ secrets_dir }}/{{ main_domain }}.tar.xz'
-    # dest: '{{ secrets_dir }}/{{ main_domain }}-letsencrypt.tar.xz'
     flat: yes
-
-- name: '{{ letsencrypt_title }}: copy cert files'
-  become: yes
-  when: cert_files_are_present
-  ansible.builtin.copy:
-    src: '{{ cert_files_dir }}/letsencrypt'
-    dest: '/etc'
-    local_follow: no
 
 - name: '{{ letsencrypt_title }}: unset facts'
   set_fact:
+    certs_backup_dir:
     letsencrypt_title:
     certbot_bin_dest:
     email:
     tar_file:
+    cert_files_in_target_are_present:

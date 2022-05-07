@@ -1,9 +1,6 @@
-- name: '{{ subgroup_title }}, nginx: set facts'
+- name: 'nginx: set facts'
   set_fact:
-    nginx_title: '{{ subgroup_title }}, nginx'
-    backend_port: '{{ backend_port }}'
-    server_config_dest: '/etc/nginx/sites-available/{{ app_name }}'
-    template_file: "{{ './app.nginx.with-cert.j2' if cert_files_are_present else './app.nginx.no-cert.j2' }}"
+    nginx_title: 'nginx'
 
 - name: '{{ nginx_title }}: install packages'
   become: yes
@@ -12,24 +9,37 @@
       - nginx
     install_recommends: no
 
-- name: '{{ nginx_title }}: create server config file'
-  become: yes
-  vars:
-    server_name: "{{ '# ... no domains' if not cert_files_are_present else ['server_name', ' ', ' '.join(domains), ';'] | join('') }}"
-  ansible.builtin.template:
-    src: '{{ template_file }}'
-    dest: '{{ server_config_dest }}'
-
-- name: '{{ nginx_title }}: create symlink to sites-enabled dir'
+- name: '{{ nginx_title }}: create ACME challenge config'
   become: yes
   ansible.builtin.file:
-    src: '{{ server_config_dest }}'
-    dest: '/etc/nginx/sites-enabled/{{ app_name }}'
+    dest: '{{ html_path }}{{ acme_challenge_sub_dir }}'
+    state: directory
+
+- name: '{{ nginx_title }}: create ACME challenge config'
+  become: yes
+  ansible.builtin.template:
+    src: './acme-challenge.nginx.j2'
+    dest: '/etc/nginx/sites-available/acme-challenge'
+
+- name: '{{ nginx_title }}: create ACME challenge config'
+  become: yes
+  ansible.builtin.file:
+    src: '/etc/nginx/sites-available/acme-challenge'
+    dest: '/etc/nginx/sites-enabled/acme-challenge'
     state: link
+
+- name: '{{ nginx_title }}: clean up'
+  become: yes
+  ansible.builtin.file:
+    dest: '/etc/nginx/sites-enabled/default'
+    state: absent
+
+- name: '{{ nginx_title }}: clean up'
+  become: yes
+  ansible.builtin.file:
+    dest: '/etc/nginx/sites-available/default'
+    state: absent
 
 - name: '{{ nginx_title }}: unset facts'
   set_fact:
     nginx_title:
-    backend_port:
-    server_config_dest:
-    template_file:

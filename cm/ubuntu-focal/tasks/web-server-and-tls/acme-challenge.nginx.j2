@@ -1,0 +1,5 @@
+server {
+    location {{ acme_challenge_sub_dir }} {
+        alias {{ html_path }}{{ acme_challenge_sub_dir }};
+    }
+}

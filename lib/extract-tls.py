@@ -18,15 +18,23 @@ class ExtractTLS(object):
         if md_key not in config:
             return
 
+        main_domain = config[md_key]
         secrets_dir = pathlib.Path(config['secrets_dir'])
-        archive_fp = secrets_dir.joinpath('.'.join([config[md_key], 'tar', 'xz']))
+        archive_fp = secrets_dir.joinpath('.'.join([main_domain, 'tar', 'xz']))
+
+        cert_files_dir = pathlib.Path(config['cert_files_dir'])
+        cert_files_dir.mkdir(parents=True, exist_ok=True)
+
+        guard_file = cert_files_dir.joinpath(main_domain, 'live', main_domain, 'cert.pem')
+        if guard_file.is_file():
+            return
 
         if archive_fp.is_file():
-            os.chdir(pathlib.Path(config['cert_files_dir']).parent)
+            os.chdir(cert_files_dir)
 
             subprocess.run(['tar', 'xJvf', archive_fp], check=True)
 
-            archive_fp.unlink()
+            # archive_fp.unlink()
 
 
 if __name__ == '__main__':
