@@ -1,0 +1,17 @@
+# TODO
+- name: '{{ deploy_code_title }}, backend: download Go modules'
+  become: yes
+  become_user: '{{ deploy_user }}'
+  ansible.builtin.command: /usr/local/go/bin/go mod download
+  args:
+    chdir: '{{ app_dir }}'
+    # creates: some-module-file
+
+- name: '{{ deploy_code_title }}, backend: create log dir'
+  become: yes
+  ansible.builtin.file:
+    path: '/var/log/app'
+    state: directory
+    recurse: yes
+    owner: '{{ deploy_user }}'
+    group: '{{ deploy_user }}'

@@ -8,49 +8,46 @@
       set_fact:
         top_level_title: 'Main'
 
-    - import_tasks: '{{ cm_dir }}/tasks/ssh/tasks.yml'
-      vars:
-        TODO_TEMPLATE_ssh_port: 22
-        TODO_TEMPLATE_remote_user: 'TODO-USER'
-        TODO_TEMPLATE_allow_ssh_ip: 'TODO-ALLOW-SSH-IP'
-
-    - import_tasks: '{{ cm_dir }}/tasks/firewall.yml'
-      # vars:
-      #   TODO_TEMPLATE_ssh_port: 22
-      #   TODO_TEMPLATE_allow_ssh_ip: 'TODO-ALLOW-SSH-IP'
-
-    - name: '{{ top_level_title }}: dist updates and upgrades'
-      become: yes
-      apt:
-        update_cache: yes
-        upgrade: dist
-
-    - name: '{{ top_level_title }}: install packages'
-      become: yes
-      apt:
-        pkg:
-          - tree
-          - make
-          # For becoming a non-root user
-          - acl
-        install_recommends: no
-
-    - import_tasks: '{{ cm_dir }}/tasks/users.yml'
-
-    - import_tasks: '{{ cm_dir }}/tasks/lang.yml'
-      vars:
-        go_basename: 'go1.17.6.linux-amd64.tar.gz'
-        nodejs_basename: 'node-v16.14.0-linux-x64.tar.xz'
-        nodejs_extract_dest: '/tmp/node-v16.14.0-linux-x64'
-
-    - import_tasks: '{{ cm_dir }}/tasks/web-server-and-tls/tasks.yml'
-
-    - import_tasks: '{{ cm_dir }}/tasks/db.yml'
-
-    # - import_tasks: '{{ cm_dir }}/tasks/deploy-code.yml'
+    # - import_tasks: '{{ cm_dir }}/tasks/ssh/tasks.yml'
     #   vars:
-    #     title: '{{ title }}'
-    #     repo: 'https://github.com/software-engr-full-stack/domain-ip-address-mapper'
+    #     TODO_TEMPLATE_ssh_port: 22
+    #     TODO_TEMPLATE_remote_user: 'TODO-USER'
+    #     TODO_TEMPLATE_allow_ssh_ip: 'TODO-ALLOW-SSH-IP'
+
+    # - import_tasks: '{{ cm_dir }}/tasks/firewall.yml'
+    #   # vars:
+    #   #   TODO_TEMPLATE_ssh_port: 22
+    #   #   TODO_TEMPLATE_allow_ssh_ip: 'TODO-ALLOW-SSH-IP'
+
+    # - name: '{{ top_level_title }}: dist updates and upgrades'
+    #   become: yes
+    #   apt:
+    #     update_cache: yes
+    #     upgrade: dist
+
+    # - name: '{{ top_level_title }}: install packages'
+    #   become: yes
+    #   apt:
+    #     pkg:
+    #       - tree
+    #       - make
+    #       # For becoming a non-root user
+    #       - acl
+    #     install_recommends: no
+
+    # - import_tasks: '{{ cm_dir }}/tasks/users.yml'
+
+    # - import_tasks: '{{ cm_dir }}/tasks/lang.yml'
+    #   vars:
+    #     go_basename: 'go1.17.6.linux-amd64.tar.gz'
+    #     nodejs_basename: 'node-v16.14.0-linux-x64.tar.xz'
+    #     nodejs_extract_dest: '/tmp/node-v16.14.0-linux-x64'
+
+    # - import_tasks: '{{ cm_dir }}/tasks/web-server-and-tls/tasks.yml'
+
+    # - import_tasks: '{{ cm_dir }}/tasks/db.yml'
+
+    - import_tasks: '{{ cm_dir }}/tasks/deploy-code.yml'
 
     # - import_tasks: './tasks/secrets.yml'
     #   vars:
