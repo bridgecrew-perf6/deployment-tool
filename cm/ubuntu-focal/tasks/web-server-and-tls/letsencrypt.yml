@@ -7,16 +7,6 @@
     tar_file: '/root/letsencrypt.{{ main_domain }}.tar.xz'
     local_domain_cert_files_dir: '{{ cert_files_dir }}/{{ main_domain }}'
 
-- name: '{{ letsencrypt_title }}: check if cert files in target are present'
-  become: yes
-  ansible.builtin.stat:
-    path: '/etc/letsencrypt/live/{{ main_domain }}/cert.pem'
-  register: stat_result
-
-- name: '{{ letsencrypt_title }}: check if cert files in target are present'
-  set_fact:
-    cert_files_in_target_are_present: '{{ stat_result.stat.exists }}'
-
 - name: '...'
   connection: local
   delegate_to: localhost
@@ -126,4 +116,3 @@
     certbot_bin_dest:
     email:
     tar_file:
-    cert_files_in_target_are_present:
