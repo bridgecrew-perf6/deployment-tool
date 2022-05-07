@@ -1,7 +1,7 @@
 ---
-- name: 'Deploy code: set facts'
+- name: 'git: set facts'
   set_fact:
-    deploy_code_title: 'Deploy code'
+    deploy_code_title: 'git'
 
 - name: '{{ deploy_code_title }}: create app dir'
   become: yes
@@ -19,8 +19,6 @@
     repo: '{{ repo }}'
     dest: '{{ app_dir }}'
     clone: yes
-
-- name: '{{ deploy_code_title }}: TODO app specific tasks'
 
 - name: '{{ deploy_code_title }}: unset facts'
   set_fact:
