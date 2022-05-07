@@ -25,6 +25,10 @@
     html_path: '{{ _html_path }}'
     cert_files_in_target_are_present: '{{ cert_files_in_target_are_present }}'
 
+- import_tasks: ./app-config.yml
+  vars:
+    cert_files_in_target_are_present: '{{ cert_files_in_target_are_present }}'
+
 - name: '{{ title }}: unset facts'
   set_fact:
     title:
