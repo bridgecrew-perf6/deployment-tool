@@ -45,9 +45,7 @@
 
     - import_tasks: '{{ cm_dir }}/tasks/web-server-and-tls/tasks.yml'
 
-    # - import_tasks: '{{ cm_dir }}/tasks/db/tasks.yml'
-    #   vars:
-    #     title: '{{ title }}'
+    - import_tasks: '{{ cm_dir }}/tasks/db.yml'
 
     # - import_tasks: '{{ cm_dir }}/tasks/deploy-code.yml'
     #   vars:
