@@ -1,0 +1,31 @@
+- name: 'Docker: set facts'
+  set_fact:
+    docker_title: 'Docker'
+
+- name: '{{ docker_title }}: add Docker GPG key'
+  become: yes
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: '{{ docker_title }}: add Docker repository'
+  become: yes
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu focal stable
+    state: present
+
+- name: '{{ docker_title }}: update apt and install'
+  become: yes
+  apt:
+    pkg:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    install_recommends: no
+    state: latest
+    update_cache: true
+
+- name: '{{ docker_title }}: unset facts'
+  set_fact:
+    docker_title:

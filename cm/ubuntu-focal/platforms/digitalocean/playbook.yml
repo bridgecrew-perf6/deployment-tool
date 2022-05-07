@@ -47,7 +47,9 @@
 
     # - import_tasks: '{{ cm_dir }}/tasks/db.yml'
 
-    - import_tasks: '{{ cm_dir }}/tasks/deploy-code.yml'
+    - import_tasks: '{{ cm_dir }}/tasks/docker.yml'
+
+    # - import_tasks: '{{ cm_dir }}/tasks/deploy-code.yml'
 
     # - import_tasks: './tasks/secrets.yml'
     #   vars:
