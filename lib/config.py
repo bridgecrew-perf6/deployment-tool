@@ -28,8 +28,6 @@ class Config(object):
 
         self.__resolve_paths(config)
 
-        self.__inject_calculated(config)
-
         self.data = config
         if output_file:
             self.__output_file(output_file, config)
@@ -55,16 +53,6 @@ class Config(object):
             config[path_key] = secrets_dir.joinpath(config[path_key]).as_posix()
 
         return config
-
-    def __inject_calculated(self, config):
-        cfd_key = 'cert_files_dir'
-        cfap_key = 'cert_files_are_present'
-        if cfd_key in config:
-            if pathlib.Path(config[cfd_key]).is_dir():
-                config[cfap_key] = True
-                return
-
-        config[cfap_key] = False
 
     def __output_file(self, output_file, config):
         if not output_file:
