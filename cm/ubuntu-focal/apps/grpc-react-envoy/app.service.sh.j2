@@ -3,8 +3,15 @@
 # ... used by systemd app service
 
 run() {
+  docker system prune --force
+
   cd '{{ app_dir }}'
-  make '{{ make_task_name_to_launch_http }}'
+  cd server
+  make deploy
+
+  cd '{{ app_dir }}'
+  cd proxies
+  make deploy
 }
 
 _logger() {
