@@ -1,0 +1,27 @@
+- name: 'App specific: set facts'
+  set_fact:
+    app_specific_title: 'App specific'
+    app_specific_tasks_path: '../../apps/{{ app_name }}/tasks.yml'
+
+- name: '{{ app_specific_title }}: check if app specific tasks are present'
+  connection: local
+  delegate_to: localhost
+  ansible.builtin.stat:
+    path: '{{ app_specific_tasks_path }}'
+  register: stat_result
+
+- name: '{{ app_specific_title }}: check if app specific tasks are present'
+  set_fact:
+    app_specific_tasks_are_present: '{{ stat_result.stat.exists }}'
+
+- debug:
+    msg: '... path {{ app_specific_tasks_path }}'
+
+- include_tasks: '{{ app_specific_tasks_path }}'
+  when: app_specific_tasks_are_present
+
+- name: '{{ app_specific_title }}: unset facts'
+  set_fact:
+    app_specific_title:
+    app_specific_tasks_path:
+    app_specific_tasks_are_present:

@@ -1,17 +1,29 @@
 # TODO
-- name: '{{ deploy_code_title }}, backend: download Go modules'
-  become: yes
-  become_user: '{{ deploy_user }}'
-  ansible.builtin.command: /usr/local/go/bin/go mod download
-  args:
-    chdir: '{{ app_dir }}'
-    # creates: some-module-file
+- name: '{{ app_name }}: DEBUG'
+  debug:
+    msg: 'DEBUG {{ app_name }}'
 
-- name: '{{ deploy_code_title }}, backend: create log dir'
-  become: yes
-  ansible.builtin.file:
-    path: '/var/log/app'
-    state: directory
-    recurse: yes
-    owner: '{{ deploy_user }}'
-    group: '{{ deploy_user }}'
+# - name: '{{ app_name }}: set facts'
+#   set_fact:
+#     app_specific_title: 'App specific'
+
+# - name: '{{ app_name }}, backend: download Go modules'
+#   become: yes
+#   become_user: '{{ deploy_user }}'
+#   ansible.builtin.command: /usr/local/go/bin/go mod download
+#   args:
+#     chdir: '{{ app_dir }}/server'
+#     # creates: some-module-file
+
+# # - name: '{{ deploy_code_title }}, backend: create log dir'
+# #   become: yes
+# #   ansible.builtin.file:
+# #     path: '/var/log/app'
+# #     state: directory
+# #     recurse: yes
+# #     owner: '{{ deploy_user }}'
+# #     group: '{{ deploy_user }}'
+
+# - name: '{{ app_specific_title }}: unset facts'
+#   set_fact:
+#     app_specific_title:
