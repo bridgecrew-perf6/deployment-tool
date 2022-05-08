@@ -14,9 +14,6 @@
   set_fact:
     app_specific_tasks_are_present: '{{ stat_result.stat.exists }}'
 
-- debug:
-    msg: '... path {{ app_specific_tasks_path }}'
-
 - include_tasks: '{{ app_specific_tasks_path }}'
   when: app_specific_tasks_are_present
 
