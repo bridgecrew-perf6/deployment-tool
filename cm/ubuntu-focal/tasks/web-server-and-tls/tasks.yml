@@ -9,25 +9,10 @@
     html_path: '{{ _html_path }}'
     acme_challenge_sub_dir: '/.well-known/acme-challenge/'
 
-- name: '{{ title }}: check if cert files in target are present'
-  become: yes
-  ansible.builtin.stat:
-    path: '/etc/letsencrypt/live/{{ main_domain }}/cert.pem'
-  register: stat_result
-
-- name: '{{ title }}: check if cert files in target are present'
-  set_fact:
-    cert_files_in_target_are_present: '{{ stat_result.stat.exists }}'
-
 - import_tasks: ./letsencrypt.yml
   when: main_domain is defined
   vars:
     html_path: '{{ _html_path }}'
-    cert_files_in_target_are_present: '{{ cert_files_in_target_are_present }}'
-
-- import_tasks: ./app-config.yml
-  vars:
-    cert_files_in_target_are_present: '{{ cert_files_in_target_are_present }}'
 
 - name: '{{ title }}: unset facts'
   set_fact:

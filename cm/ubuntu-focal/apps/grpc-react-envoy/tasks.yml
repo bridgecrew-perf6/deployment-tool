@@ -1,6 +1,5 @@
-- name: '{{ app_name }}: set facts'
-  set_fact:
-    app_specific_title: 'App specific'
+# - name: '{{ app_name }}: set facts'
+#   set_fact:
 
 - name: '{{ app_name }}: install protobuf-compiler'
   become: yes
@@ -49,10 +48,24 @@
   args:
     chdir: '{{ app_dir }}/client/reactjs'
 
-- import_tasks: './systemd.yml'
+- debug:
+    msg: 'TODO: uncomment npm run build after debugging'
+# - name: '{{ app_name }}, frontend: build'
+#   become: yes
+#   become_user: '{{ deploy_user }}'
+#   ansible.builtin.command:
+#     argv:
+#       - /usr/local/nodejs/bin/npm
+#       - run
+#       - build
+#   args:
+#     chdir: '{{ app_dir }}/client/reactjs'
+
+- include_tasks: './nginx.yml'
+
+- include_tasks: './systemd.yml'
   vars:
     systemd_title: '{{ app_name }}, systemd'
 
-- name: '{{ app_specific_title }}: unset facts'
-  set_fact:
-    app_specific_title:
+# - name: '{{ app_name }}: unset facts'
+#   set_fact:

@@ -1,10 +1,10 @@
-- name: 'App config: set facts'
+- name: '{{ app_name }}, nginx: set facts'
   set_fact:
-    app_config_title: 'App config'
+    app_nginx_title: '{{ app_name }}, nginx'
     server_config_dest: '/etc/nginx/sites-available/{{ app_name }}'
     template_file: "{{ './app.nginx.with-cert.j2' if cert_files_in_target_are_present else './app.nginx.no-cert.j2' }}"
 
-- name: '{{ app_config_title }}: create app config file'
+- name: '{{ app_nginx_title }}: create app config file'
   become: yes
   vars:
     server_name: "{{ '# ... no domains' if not cert_files_in_target_are_present else ['server_name', ' ', ' '.join(domains), ';'] | join('') }}"
@@ -12,15 +12,15 @@
     src: '{{ template_file }}'
     dest: '{{ server_config_dest }}'
 
-- name: '{{ app_config_title }}: create symlink to sites-enabled dir'
+- name: '{{ app_nginx_title }}: create symlink to sites-enabled dir'
   become: yes
   ansible.builtin.file:
     src: '{{ server_config_dest }}'
     dest: '/etc/nginx/sites-enabled/{{ app_name }}'
     state: link
 
-- name: '{{ app_config_title }}: unset facts'
+- name: '{{ app_nginx_title }}: unset facts'
   set_fact:
-    app_config_title:
+    app_nginx_title:
     server_config_dest:
     template_file:
