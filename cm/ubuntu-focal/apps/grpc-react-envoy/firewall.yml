@@ -1,0 +1,15 @@
+- name: '{{ app_name }}: firewall'
+  become: yes
+  community.general.ufw:
+    rule: 'allow'
+    src: 10.4.0.0/24
+    dest: 127.0.0.1
+
+    port: '{{ 50051 | string }}'
+
+    proto: 'tcp'
+    comment: '... created by "{{ app_name }}, firewall"'
+
+  # Syntax: ufw allow from <target> to <destination> port <port number> proto <protocol name>
+  # Using command modul
+  # command: ufw allow from 10.4.0.0/24 to 127.0.0.1 port 50051

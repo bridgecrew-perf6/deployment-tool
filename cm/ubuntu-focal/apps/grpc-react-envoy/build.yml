@@ -1,0 +1,59 @@
+- name: '{{ app_name }}: install protobuf-compiler'
+  become: yes
+  apt:
+    pkg:
+      - protobuf-compiler
+    install_recommends: no
+
+- name: '{{ app_name }}, backend: download Go modules'
+  become: yes
+  become_user: '{{ deploy_user }}'
+  ansible.builtin.command: /usr/local/go/bin/go mod download
+  args:
+    chdir: '{{ app_dir }}/server'
+    # creates: some-module-file
+
+- name: '{{ app_name }}, backend: install Go protocol compiler plugins'
+  become: yes
+  become_user: '{{ deploy_user }}'
+  ansible.builtin.command:
+    argv:
+      - /usr/local/go/bin/go
+      - install
+      - google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
+  args:
+    chdir: '{{ app_dir }}/server'
+
+- name: '{{ app_name }}, backend: install Go protocol compiler plugins'
+  become: yes
+  become_user: '{{ deploy_user }}'
+  ansible.builtin.command:
+    argv:
+      - /usr/local/go/bin/go
+      - install
+      - google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
+  args:
+    chdir: '{{ app_dir }}/server'
+
+- name: '{{ app_name }}, frontend: install NPM packages'
+  become: yes
+  become_user: '{{ deploy_user }}'
+  ansible.builtin.command:
+    argv:
+      - /usr/local/nodejs/bin/npm
+      - install
+  args:
+    chdir: '{{ app_dir }}/client/reactjs'
+
+- debug:
+    msg: 'TODO: uncomment npm run build after debugging'
+# - name: '{{ app_name }}, frontend: build'
+#   become: yes
+#   become_user: '{{ deploy_user }}'
+#   ansible.builtin.command:
+#     argv:
+#       - /usr/local/nodejs/bin/npm
+#       - run
+#       - build
+#   args:
+#     chdir: '{{ app_dir }}/client/reactjs'

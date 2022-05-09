@@ -1,10 +1,11 @@
 ---
 - name: '{{ systemd_title }}: set facts'
   set_fact:
-    app_systemd_service_name:                         'app.service'
-    app_systemd_service_template:                   './app.service.j2'
-    app_systemd_service_dest:     '/etc/systemd/system/app.service'
-    service_cmd:                       '/usr/local/bin/app.service.sh'
+    app_systemd_service_name:                     '{{ app_name }}.service'
+    app_systemd_service_dest: '/etc/systemd/system/{{ app_name }}.service'
+    service_cmd:                   '/usr/local/bin/{{ app_name }}.service.sh'
+
+    app_systemd_service_template: './app.service.j2'
 
 - assert:
     that:
@@ -32,7 +33,7 @@
       - daemon-reload
   # when: TODO => service file is changed
 
-- name: '{{ systemd_title }}: enable app service'
+- name: '{{ systemd_title }}: start app service'
   become: yes
   ansible.builtin.command:
     argv:

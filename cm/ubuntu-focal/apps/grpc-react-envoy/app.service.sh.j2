@@ -3,6 +3,8 @@
 # ... used by systemd app service
 
 run() {
+  export PATH=$PATH:/home/{{ deploy_user }}/go/bin:{{ go_target_dir }}/bin:{{ nodejs_target_dir }}/bin
+
   docker system prune --force
 
   cd '{{ app_dir }}'
