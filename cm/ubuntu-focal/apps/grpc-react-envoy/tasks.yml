@@ -1,9 +1,59 @@
+---
+- name: '{{ app_name }}: set facts'
+  set_fact:
+    _log_dir:    '/var/log/apps/{{ app_name }}'
+    _server_log: '/var/log/apps/{{ app_name }}/server.log'
+    _access_log: '/var/log/apps/{{ app_name }}/nginx.access.log'
+    _error_log:  '/var/log/apps/{{ app_name }}/nginx.error.log'
+
+- name: '{{ app_name }}: create log dirs'
+  become: yes
+  ansible.builtin.file:
+    dest: '{{ _log_dir }}'
+    owner: root
+    group: root
+    state: directory
+
+- name: '{{ app_name }}: touch server log'
+  become: yes
+  ansible.builtin.file:
+    dest: '{{ _server_log }}'
+    owner: '{{ deploy_user }}'
+    group: '{{ deploy_user }}'
+    state: touch
+
+- name: '{{ app_name }}: touch nginx access log'
+  become: yes
+  ansible.builtin.file:
+    dest: '{{ _access_log }}'
+    owner: www-data
+    group: adm
+    state: touch
+
+- name: '{{ app_name }}: touch nginx error log'
+  become: yes
+  ansible.builtin.file:
+    dest: '{{ _error_log }}'
+    owner: www-data
+    group: adm
+    state: touch
+
 - include_tasks: './build.yml'
 
 - include_tasks: './firewall.yml'
 
 - include_tasks: './nginx.yml'
+  vars:
+    access_log: '{{ _access_log }}'
+    error_log: '{{ _error_log }}'
 
 - include_tasks: './systemd.yml'
   vars:
     systemd_title: '{{ app_name }}, systemd'
+    server_log: '{{ _server_log }}'
+
+- name: '{{ app_name }}: unset facts'
+  set_fact:
+    _log_dir:
+    _access_log:
+    _error_log:

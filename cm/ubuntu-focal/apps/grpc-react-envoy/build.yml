@@ -45,15 +45,16 @@
   args:
     chdir: '{{ app_dir }}/client/reactjs'
 
-- debug:
-    msg: 'TODO: uncomment npm run build after debugging'
-# - name: '{{ app_name }}, frontend: build'
-#   become: yes
-#   become_user: '{{ deploy_user }}'
-#   ansible.builtin.command:
-#     argv:
-#       - /usr/local/nodejs/bin/npm
-#       - run
-#       - build
-#   args:
-#     chdir: '{{ app_dir }}/client/reactjs'
+# - debug:
+#     msg: 'TODO: uncomment npm run build after debugging'
+
+- name: '{{ app_name }}, frontend: build'
+  become: yes
+  become_user: '{{ deploy_user }}'
+  ansible.builtin.command:
+    argv:
+      - /usr/local/nodejs/bin/npm
+      - run
+      - build
+  args:
+    chdir: '{{ app_dir }}/client/reactjs'

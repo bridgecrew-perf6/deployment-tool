@@ -9,7 +9,7 @@ run() {
 
   cd '{{ app_dir }}'
   cd server
-  make deploy
+  make deploy | tee -a {{ server_log }}
 
   cd '{{ app_dir }}'
   cd proxies
