@@ -25,6 +25,15 @@
     dest: '{{ service_cmd }}'
     mode: '0755'
 
+- name: '{{ systemd_title }}: start app service'
+  ignore_errors: yes
+  become: yes
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/systemctl
+      - stop
+      - '{{ app_systemd_service_name }}'
+
 - name: '{{ systemd_title }}: daemon reload'
   become: yes
   ansible.builtin.command:
