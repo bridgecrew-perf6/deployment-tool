@@ -2,8 +2,11 @@
   become: yes
   community.general.ufw:
     rule: 'allow'
-    src: 10.4.0.0/24
-    dest: 127.0.0.1
+
+    # # TODO: doesn't work.
+    # # ... see docker config on actual app associated with this subnet
+    # src: 10.4.0.0/24
+    # dest: 10.4.0.0/24
 
     port: '{{ 50051 | string }}'
 
