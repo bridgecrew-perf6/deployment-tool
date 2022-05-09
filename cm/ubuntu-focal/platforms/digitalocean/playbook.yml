@@ -30,6 +30,7 @@
     #   apt:
     #     pkg:
     #       - tree
+    #       - net-tools
     #       - make
     #       # For becoming a non-root user
     #       - acl
@@ -56,9 +57,9 @@
       set_fact:
         _cert_files_in_target_are_present: '{{ stat_result.stat.exists }}'
 
-    - import_tasks: '{{ cm_dir }}/tasks/web-server-and-tls/tasks.yml'
-      vars:
-        cert_files_in_target_are_present: '{{ _cert_files_in_target_are_present }}'
+    # - import_tasks: '{{ cm_dir }}/tasks/web-server-and-tls/tasks.yml'
+    #   vars:
+    #     cert_files_in_target_are_present: '{{ _cert_files_in_target_are_present }}'
 
     # - import_tasks: '{{ cm_dir }}/tasks/db.yml'
 
