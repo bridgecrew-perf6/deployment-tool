@@ -3,6 +3,7 @@
     app_nginx_title: '{{ app_name }}, nginx'
     server_config_dest: '/etc/nginx/sites-available/{{ app_name }}'
     template_file: "{{ './app.nginx.with-cert.j2' if cert_files_in_target_are_present else './app.nginx.no-cert.j2' }}"
+    rproxy_conf_file_bname: '{{ app_name }}-reverse-proxy'
 
 - name: '{{ app_nginx_title }}: create app config file'
   become: yes
